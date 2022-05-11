@@ -16,7 +16,8 @@ start:
 exit:
 		li   	$v0, 10          	# specify exit system call
       	syscall						# exit program
-		
+
+# a0 = A		
 # a1 = N
 # a2 = B
 # t9 = B
@@ -26,6 +27,8 @@ exit:
 # s3 = k
 # s4 = MIN THING
 # s5 = j
+# s6 = M(I + 1) - 1
+# s7 = M(J + 1) - 1
 
 
 eliminate:
@@ -41,45 +44,71 @@ for_loop_I:
 		add		$s2, $zero, $zero	# s2 = J, J = 0
 for_loop_J:
 		bge		$s2, $t9, for_loop_I_end
-		move	$t1, $s2, 			# t1 = J
+
+		#### ASSIGN M(I + 1) - 1
+		#### ASSIGN M(J + 1) - 1
+		addi	$t1, $s1, 1
+		addi	$t3, $s2, 1
+		mul	$t2, $t1, $s0
+		mul	$t4, $t3, $s0
+		subi	$s6, $t2, 1
+		subi	$s7, $t4, 1
+		########################
+		move 	$t1, $s2		# t1 = $t1
 		blt		$s2, $s1, before_k_loop 	# if J < I, do not reassign I to t1
 		nop
 		move 	$t1, $s1			# $t1 = J
 before_k_loop:
-		addi 	$t1, $s1, 1			#t1 = I/J + 1 
-		mul		$s4, $s0, $t1		#t2 = M(I/J + 1)
-		subi	$s4, $s4, 1			#t2 = M(I/J + 1) - 1
 		add		$s3, $zero, $zero	# $s3 = k, k = 0
 		
 		
 for_loop_k:
-		bgt 	$s3, $s4, for_loop_J_end
+		bgt 	$s3, $t1, for_loop_J_end
+
 		mul		$t1, $s1, $s0		#t1 = I*M
-		blt		$s3, $t1, for_loop_j
-		addi 	$t1, $s1, 1			#t1 = I + 1 
-		mul		$t2, $s0, $t1		#t2 = M(I + 1)
-		subi	$t2, $t2, 1			#t2 = M(I + 1) - 1
-		bgt		$s3, $t1, for_loop_j
+		blt		$s3, $t1, for_loop_i
+		bgt		$s3, $s6, for_loop_i
+		nop
 
 if1:
-		addi 	$t1, $s2, 1			#t1 = I + 1 
-		mul		$t2, $s0, $t1		#t2 = M(I + 1)
-		subi	$t2, $t2, 1			#t2 = M(I + 1) - 1
-		addi	$t3, $s3, 1			# $t3 = k + 1
-		mul		$t4, $s0, $s2		# t4 = M*J
-
-		bgt		$t4, $t3, for_loop_j	# if $t4 > $t1 then target
+		addi	$t2, $s3, 1			# $t2 = k + 1
+		mul		$t3, $s0, $s2		# t3 = M*J
+		bge		$t2, $t3, if1B		# if $t2 >= $t1 then target
 		nop
-		move 	$t3, $t4			# $t3 = $t4
+		move 	$t2, $t3			# $t2 = M*J
+if1B:	
+		move	$s5, $t2			# j = 0
 		
-for_loop_j: ### j is $t3
-		bgt		$t3, $t2, for_loop_i
-
+		
+		
+for_loop_j: ### j is $s5
+		bge		$s5, $s7, for_loop_i	# if j >= M(J + 1) - 1 then before_loop_i
+		nop
+		###################################
+		move 	$a2, $s3		# $a2 = $s3
+		move 	$a3, $s3		# $a2 = $s3
+		jal		new_get_elem			#get kk
+		mov.s 	$f1, $f0				#t1 = A[k][k]
+		move 	$a3, $s5		# $a2 = $s3
+		jal		new_get_elem			#getkj
+		div.s	$f0, $f1, $f0
+		s.s	$f0, 0($v0)
+		###################################
+		
+		#		set_k_j
 for_loop_j_end:
-		addi	$t3, $t3, 1
+		addi	$s5, $s5, 1
 		b for_loop_j
 		nop
 if2:
+	bne		$s5, $a1, before_loop_i	# if $s5 != $t1 then target
+	nop
+	l.s	$f0, 1
+	nop
+	s.s	$f0, 0($v0)
+
+
+before_loop_i:
 for_loop_i:
 for_loop_j2:
 for_loop_j2_end:
@@ -108,6 +137,34 @@ program_end:
 		jr		$ra					# return from subroutine
 		nop							# this is the delay slot associated with all types of jumps
 
+# a1 = N
+# a2 = B
+# t9 = B
+# s0 = M
+# s1 = I
+# s2 = J
+# s3 = k
+# s4 = MIN THING
+# s5 = j
+
+# Args:
+#		$a0 - base address of matrix (A)
+#		$a1 - Number of elements per row (N)
+# 		$a3 - Row number (a)
+#		$a4 - Column number (b)
+
+#		$f0 -> Value
+#		$v0 -> Address
+new_get_elem:
+		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
+		multu	$a2, $t1
+		mflo	$t2
+		addu	$t2, $t2, $a0		# Now t2 contains address to row a
+		sll		$t3, $a3, 2			# s0 = 4*b (byte offset of column b)
+		addu	$v0, $t2, $t3		# Now we have address to A[a][b] in v0
+		l.s		$f0, 0($v0)		    # ... and contents of A[a][b] in f0
+		jr		$ra					# jump to $ra
+		
 
 ##########################################################
 print_matrix:
