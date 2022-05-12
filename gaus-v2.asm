@@ -29,6 +29,7 @@ exit:
 # s5 = j
 # s6 = M(I + 1) - 1
 # s7 = M(J + 1) - 1
+# s8 = i
 
 
 eliminate:
@@ -66,8 +67,8 @@ for_loop_k:
 		bgt 	$s3, $t1, for_loop_J_end
 
 		mul		$t1, $s1, $s0		#t1 = I*M
-		blt		$s3, $t1, for_loop_i
-		bgt		$s3, $s6, for_loop_i
+		blt		$s3, $t1, before_loop_i
+		bgt		$s3, $s6, before_loop_i
 		nop
 
 if1:
@@ -82,7 +83,7 @@ if1B:
 		
 		
 for_loop_j: ### j is $s5
-		bge		$s5, $s7, for_loop_i	# if j >= M(J + 1) - 1 then before_loop_i
+		bge		$s5, $s7, for_loop_k_end	# if j >= M(J + 1) - 1 then before_loop_i
 		nop
 		###################################
 		move 	$a2, $s3		# $a2 = $s3
@@ -101,18 +102,63 @@ for_loop_j_end:
 		b for_loop_j
 		nop
 if2:
-	bne		$s5, $a1, before_loop_i	# if $s5 != $t1 then target
-	nop
-	l.s	$f0, 1
-	nop
-	s.s	$f0, 0($v0)
+		bne				$s5, $a1, before_loop_i	# if $s5 != $t1 then target
+		nop
+		jal				new_get_elem
+		nop
+		l.s				$f0, 1
+		nop
+		s.s				$f0, 0($v0)
 
 
 before_loop_i:
+		addi		$s7, $s3, 1		# i = k + 1
+		mul			$t1, $s0, $s1	# t1 = I * M
+		blt			$s7, $t1, for_loop_i	# if $t0 < $t1 then for_loop_i
+		nop
+		move		$s7, $t1
+		
 for_loop_i:
+	bgt		$s7, $s6, if3	# if $s7 > $s6 then if3
+	
+before_loop_j2:
+		addi		$s5, $s3, 1		# i = k + 1
+		mul			$t1, $s0, $s2	# t1 = J * M
+		blt			$s5, $t1, for_loop_i_end	# if $t0 < $t1 then for_loop_i
+		nop
+		move		$s5, $t1
 for_loop_j2:
+		move 		$a3, $s3		# a3 = k
+		move		$a4, $s5		# a4 = j
+		b			new_get_elem:
+		mov.s		$f1, $f0
+		move 		$a3, $s8		# a3 = i
+		move		$a4, $s3		# a4 = k
+		b			new_get_elem:
+		mul.s		$f1, $f0, $f1	# f1 = A[i][k] * A[k][j]
+		move		$a4, $s5		# a4 = j
+		b			new_get_elem:
+		sub.s		$f0, $f0, $f1	# f0 = A[i][j] - A[i][k] * A[k][j]
+		nop
+		s.s			$f0, 0($v0)
+
 for_loop_j2_end:
+		addi	$s5, $s5, 1			#j++
+		b for_loop_j2
 for_loop_i_end:
+		addi	$s7, $s7, 1			# i++
+		b for_loop_i
+		nop
+
+if3:
+		bne		$s5, $a1, for_loop_k_end	# if j != N then for_loop_k_end
+		move 		$a3, $s8		# a3 = i
+		move		$a4, $s3		# a4 = k
+		b			new_get_elem:
+		l.s			$f0, 0
+		nop
+		s.s			$f0, 0($v0)
+	
 
 for_loop_k_end:
 		addi	$s3, $s3, 1			# k++
@@ -150,8 +196,8 @@ program_end:
 # Args:
 #		$a0 - base address of matrix (A)
 #		$a1 - Number of elements per row (N)
-# 		$a3 - Row number (a)
-#		$a4 - Column number (b)
+# 		$a2 - Row number (a)
+#		$a3 - Column number (b)
 
 #		$f0 -> Value
 #		$v0 -> Address
