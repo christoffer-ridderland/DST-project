@@ -40,30 +40,32 @@ eliminate:
 		add 	$s1, $zero, $zero	# s1 = I, I = 0
 for_loop_I:
 		bge 	$s1, $a2, program_end
-
+		#### ASSIGN M(I + 1) - 1
+		addi	$t1, $s1, 1
+		mul		$t2, $t1, $a3
 		add		$s2, $zero, $zero	# s2 = J, J = 0
+		subi	$s6, $t2, 1
+
 for_loop_J:
 		bge		$s2, $a2, for_loop_I_end
 
-		#### ASSIGN M(I + 1) - 1
 		#### ASSIGN M(J + 1) - 1
-		addi	$t1, $s1, 1
+		
 		addi	$t3, $s2, 1
-		mul		$t2, $t1, $a3
 		mul		$t4, $t3, $a3
-		subi	$s6, $t2, 1
 		subi	$s7, $t4, 1
 		########################
-		move 	$t1, $s7		# t1 = $s2
-		blt		$s2, $s1, before_k_loop 	# if J < I, do not reassign I to t1
+		move 	$t8, $s7		# t1 = $s2
+		ble		$s7, $s6, before_k_loop 	# if J < I, do not reassign I to t1
 		nop
-		move 	$t1, $s6			# $t1 = J
+		move 	$t8, $s6			# $t1 = J
 before_k_loop:
 		add		$s3, $zero, $zero	# $s3 = k, k = 0
 		
 		
 for_loop_k:
-		bgt 	$s3, $t1, for_loop_J_end
+
+		bgt 	$s3, $t8, for_loop_J_end
 
 		mul		$t1, $s1, $a3		#t1 = I*M
 		bgt		$s3, $s6, before_loop_i
@@ -77,19 +79,18 @@ if1:
 		nop
 		move 	$t2, $t3			# $t2 = M*J
 if1B:	
-		move	$s5, $t2			# j = 0
+		move	$s5, $t2			# j = t2
 		
 		
 		
 for_loop_j: ### j is $s5
-		bge		$s5, $s7, for_loop_k_end	# if j >= M(J + 1) - 1 then before_loop_i
+		bge		$s5, $s7, if2	# if j >= M(J + 1) - 1 then before_loop_i
 		nop
 		
 
 		################################### GET A[k][k]
 		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
-		multu	$s3, $t1
-		mflo	$t2
+		mul		$t2, $s3, $t1
 		addu	$t2, $t2, $a0			# Now t2 contains address to row a
 		sll		$t3, $s3, 2			# s0 = 4*b (byte offset of column b)
 		addu	$t4, $t2, $t3	# Now we have address to A[a][b] in v0
@@ -106,29 +107,34 @@ for_loop_j: ### j is $s5
 		
 		#		set_k_j
 for_loop_j_end:
+
 		addi	$s5, $s5, 1
 		b for_loop_j
-		nop
 if2:
 		bne				$s5, $a1, before_loop_i	# if $s5 != $t1 then target
-		l.s				$f0, 1
-		s.s				$f0, 0($t4)
+		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
+		mul		$t2, $s3, $t1
+		addu	$t2, $t2, $a0			# Now t2 contains address to row a
+		sll		$t3, $s3, 2			# s0 = 4*b (byte offset of column b)
+		addu	$t4, $t2, $t3	# Now we have address to A[a][b] in v0
+		addi			$t0, $zero, 1
+		sw				$t0, 0($t4)
 
 
 before_loop_i:
-		addi		$s7, $s3, 1		# i = k + 1
+		addi		$s4, $s3, 1		# i = k + 1
 		mul			$t1, $a3, $s1	# t1 = I * M
-		blt			$s7, $t1, for_loop_i	# if $t0 < $t1 then for_loop_i
+		bge			$t1, $s4, for_loop_i	# if $t0 < $t1 then for_loop_i
 		nop
-		move		$s7, $t1
+		move		$s4, $t1
 		
 for_loop_i:
-		bgt		$s7, $s6, if3	# if $s7 > $s6 then if3
+		bgt		$s4, $s6, for_loop_k_end	# if $t2 > $s6 then if3
 	
 before_loop_j2:
-		addi		$s5, $s3, 1		# i = k + 1
+		addi		$s5, $s3, 1		# j = k + 1
 		mul			$t1, $a3, $s2	# t1 = J * M
-		blt			$s5, $t1, for_loop_i_end	# if $t0 < $t1 then for_loop_i
+		ble			$s5, $t1, for_loop_j2	# if $t0 < $t1 then for_loop_i
 		nop
 		move		$s5, $t1
 for_loop_j2:
@@ -140,6 +146,9 @@ for_loop_j2:
 		# t6 = *A[i][k]
 		# t7 = *A[i][j]
 		# f2 = A[i][k]
+		# j*4 + k*24*4
+		###Kan optimeras, kolla inte samma elem massa gånger
+		###
 		################################## Get A[k][j]
 		sll		$t4, $a1, 2			# s2 = 4*N (number of bytes per row)
 		multu	$s3, $t4
@@ -169,17 +178,20 @@ for_loop_j2_end:
 		addi	$s5, $s5, 1			#j++
 		b for_loop_j2
 		nop
-for_loop_i_end:
-		addi	$s7, $s7, 1			# i++
-		b for_loop_i
-		nop
 
 if3:
 		bne		$s5, $a1, for_loop_k_end	# if j != N then for_loop_k_end
 		nop
-		l.s			$f0, 0
+		add			$t0, $zero, $zero
 		nop
-		s.s			$f0, 0($t6)
+		sw			$t0, 0($t6)
+
+for_loop_i_end:
+		addi	$s4, $s4, 1			# i++
+		b for_loop_i
+		nop
+
+
 	
 for_loop_k_end:
 		addi	$s3, $s3, 1			# k++
