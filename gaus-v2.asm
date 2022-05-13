@@ -35,9 +35,9 @@ exit:
 eliminate:
 		addiu	$sp, $sp, -4		# allocate stack frame
 		sw		$ra, 0($sp)			# done saving registers
-		div 	$a3, $a1, $a2 			#M = N/B, a3 = M
+		div 	$a3, $a1, $a2 		# M = N/B, a3 = M
 
-		add 	$s1, $zero, $zero	#s1 = I, I = 0
+		add 	$s1, $zero, $zero	# s1 = I, I = 0
 for_loop_I:
 		bge 	$s1, $a2, program_end
 
@@ -66,8 +66,8 @@ for_loop_k:
 		bgt 	$s3, $t1, for_loop_J_end
 
 		mul		$t1, $s1, $a3		#t1 = I*M
-		blt		$s3, $t1, before_loop_i
 		bgt		$s3, $s6, before_loop_i
+		blt		$s3, $t1, before_loop_i
 		nop
 
 if1:
@@ -123,7 +123,7 @@ before_loop_i:
 		move		$s7, $t1
 		
 for_loop_i:
-	bgt		$s7, $s6, if3	# if $s7 > $s6 then if3
+		bgt		$s7, $s6, if3	# if $s7 > $s6 then if3
 	
 before_loop_j2:
 		addi		$s5, $s3, 1		# i = k + 1
@@ -132,8 +132,8 @@ before_loop_j2:
 		nop
 		move		$s5, $t1
 for_loop_j2:
-		move 		$a3, $s3		# a3 = k
-		move		$a4, $s5		# a4 = j
+		bgt			$s5, $s7, if3
+
 		# t4 = N*4
 		# f0 = A[k][j]
 		# f1 = A[i][j]
@@ -181,7 +181,6 @@ if3:
 		nop
 		s.s			$f0, 0($t6)
 	
-
 for_loop_k_end:
 		addi	$s3, $s3, 1			# k++
 		b		for_loop_k			# branch to for_loop_k
