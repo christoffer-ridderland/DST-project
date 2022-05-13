@@ -20,45 +20,44 @@ exit:
 # a0 = A		
 # a1 = N
 # a2 = B
-# t9 = B
-# s0 = M
+# a3 = M
+# s0
 # s1 = I
 # s2 = J
 # s3 = k
-# s4 = MIN THING
+# s4 = MIN THING / i
 # s5 = j
 # s6 = M(I + 1) - 1
 # s7 = M(J + 1) - 1
-# s8 = i
+
 
 
 eliminate:
 		addiu	$sp, $sp, -4		# allocate stack frame
 		sw		$ra, 0($sp)			# done saving registers
-		move 	$t9, $a2 			#t9 = B
-		div 	$s0, $a1, $t9 			#M = N/B, s0 = M
+		div 	$a3, $a1, $a2 			#M = N/B, a3 = M
 
 		add 	$s1, $zero, $zero	#s1 = I, I = 0
 for_loop_I:
-		bge 	$s1, $t9, program_end
+		bge 	$s1, $a2, program_end
 
 		add		$s2, $zero, $zero	# s2 = J, J = 0
 for_loop_J:
-		bge		$s2, $t9, for_loop_I_end
+		bge		$s2, $a2, for_loop_I_end
 
 		#### ASSIGN M(I + 1) - 1
 		#### ASSIGN M(J + 1) - 1
 		addi	$t1, $s1, 1
 		addi	$t3, $s2, 1
-		mul	$t2, $t1, $s0
-		mul	$t4, $t3, $s0
+		mul		$t2, $t1, $a3
+		mul		$t4, $t3, $a3
 		subi	$s6, $t2, 1
 		subi	$s7, $t4, 1
 		########################
-		move 	$t1, $s2		# t1 = $t1
+		move 	$t1, $s7		# t1 = $s2
 		blt		$s2, $s1, before_k_loop 	# if J < I, do not reassign I to t1
 		nop
-		move 	$t1, $s1			# $t1 = J
+		move 	$t1, $s6			# $t1 = J
 before_k_loop:
 		add		$s3, $zero, $zero	# $s3 = k, k = 0
 		
@@ -66,14 +65,14 @@ before_k_loop:
 for_loop_k:
 		bgt 	$s3, $t1, for_loop_J_end
 
-		mul		$t1, $s1, $s0		#t1 = I*M
+		mul		$t1, $s1, $a3		#t1 = I*M
 		blt		$s3, $t1, before_loop_i
 		bgt		$s3, $s6, before_loop_i
 		nop
 
 if1:
 		addi	$t2, $s3, 1			# $t2 = k + 1
-		mul		$t3, $s0, $s2		# t3 = M*J
+		mul		$t3, $a3, $s2		# t3 = M*J
 		bge		$t2, $t3, if1B		# if $t2 >= $t1 then target
 		nop
 		move 	$t2, $t3			# $t2 = M*J
@@ -85,15 +84,24 @@ if1B:
 for_loop_j: ### j is $s5
 		bge		$s5, $s7, for_loop_k_end	# if j >= M(J + 1) - 1 then before_loop_i
 		nop
-		###################################
-		move 	$a2, $s3		# $a2 = $s3
-		move 	$a3, $s3		# $a2 = $s3
-		jal		new_get_elem			#get kk
-		mov.s 	$f1, $f0				#t1 = A[k][k]
-		move 	$a3, $s5		# $a2 = $s3
-		jal		new_get_elem			#getkj
-		div.s	$f0, $f1, $f0
-		s.s	$f0, 0($v0)
+		
+
+		################################### GET A[k][k]
+		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
+		multu	$s3, $t1
+		mflo	$t2
+		addu	$t2, $t2, $a0			# Now t2 contains address to row a
+		sll		$t3, $s3, 2			# s0 = 4*b (byte offset of column b)
+		addu	$t4, $t2, $t3	# Now we have address to A[a][b] in v0
+		l.s		$f1, 0($t4)	# ... and contents of A[a][b] in f0
+
+		################################## GET A[k][j]
+		sll		$t3, $s5, 2			# s0 = 4*b (byte offset of column b)
+		addu	$t1, $t2, $t3	# Now we have address to A[a][b] in v0
+		l.s		$f0, 0($t1)	# ... and contents of A[a][b] in f0
+
+		div.s	$f0, $f0, $f1
+		s.s		$f0, 0($t1)
 		###################################
 		
 		#		set_k_j
@@ -103,17 +111,13 @@ for_loop_j_end:
 		nop
 if2:
 		bne				$s5, $a1, before_loop_i	# if $s5 != $t1 then target
-		nop
-		jal				new_get_elem
-		nop
 		l.s				$f0, 1
-		nop
-		s.s				$f0, 0($v0)
+		s.s				$f0, 0($t4)
 
 
 before_loop_i:
 		addi		$s7, $s3, 1		# i = k + 1
-		mul			$t1, $s0, $s1	# t1 = I * M
+		mul			$t1, $a3, $s1	# t1 = I * M
 		blt			$s7, $t1, for_loop_i	# if $t0 < $t1 then for_loop_i
 		nop
 		move		$s7, $t1
@@ -123,28 +127,48 @@ for_loop_i:
 	
 before_loop_j2:
 		addi		$s5, $s3, 1		# i = k + 1
-		mul			$t1, $s0, $s2	# t1 = J * M
+		mul			$t1, $a3, $s2	# t1 = J * M
 		blt			$s5, $t1, for_loop_i_end	# if $t0 < $t1 then for_loop_i
 		nop
 		move		$s5, $t1
 for_loop_j2:
 		move 		$a3, $s3		# a3 = k
 		move		$a4, $s5		# a4 = j
-		b			new_get_elem:
-		mov.s		$f1, $f0
-		move 		$a3, $s8		# a3 = i
-		move		$a4, $s3		# a4 = k
-		b			new_get_elem:
-		mul.s		$f1, $f0, $f1	# f1 = A[i][k] * A[k][j]
-		move		$a4, $s5		# a4 = j
-		b			new_get_elem:
-		sub.s		$f0, $f0, $f1	# f0 = A[i][j] - A[i][k] * A[k][j]
-		nop
-		s.s			$f0, 0($v0)
+		# t4 = N*4
+		# f0 = A[k][j]
+		# f1 = A[i][j]
+		# t6 = *A[i][k]
+		# t7 = *A[i][j]
+		# f2 = A[i][k]
+		################################## Get A[k][j]
+		sll		$t4, $a1, 2			# s2 = 4*N (number of bytes per row)
+		multu	$s3, $t4
+		mflo	$t2
+		addu	$t2, $t2, $a0		# Now t2 contains address to row a
+		sll		$t3, $s5, 2			# t3 = 4*b (byte offset of column b)
+		addu	$t1, $t2, $t3	# Now we have address to A[a][b] in v0
+		l.s		$f0, 0($t1)	# ... and contents of A[k][j] in f0
+		################################## Get[i][j] with address
+		multu	$s4, $t4
+		mflo	$t2
+		addu	$t2, $t2, $a0			# Now t2 contains address to row a
+		sll		$t3, $s5, 2			# s0 = 4*b (byte offset of column b)
+		addu	$t7, $t2, $t3	# Now we have address to A[a][b] in v0
+		l.s		$f1, 0($t7)	# ... and contents of A[a][b] in f0
+		################################## Get[i][k]
+		sll		$t3, $s3, 2			# s0 = 4*b (byte offset of column b)
+		addu	$t6, $t2, $t3	# Now we have address to A[a][b] in v0
+		l.s		$f2, 0($t6)	# ... and contents of A[a][b] in f0
+		####################################
+
+		mul.s		$f3, $f0, $f2	# f1 = A[i][k] * A[k][j]
+		sub.s		$f1, $f1, $f3	# f0 = A[i][j] - A[i][k] * A[k][j]
+		s.s			$f1, 0($t7)
 
 for_loop_j2_end:
 		addi	$s5, $s5, 1			#j++
 		b for_loop_j2
+		nop
 for_loop_i_end:
 		addi	$s7, $s7, 1			# i++
 		b for_loop_i
@@ -152,12 +176,10 @@ for_loop_i_end:
 
 if3:
 		bne		$s5, $a1, for_loop_k_end	# if j != N then for_loop_k_end
-		move 		$a3, $s8		# a3 = i
-		move		$a4, $s3		# a4 = k
-		b			new_get_elem:
+		nop
 		l.s			$f0, 0
 		nop
-		s.s			$f0, 0($v0)
+		s.s			$f0, 0($t6)
 	
 
 for_loop_k_end:
@@ -185,8 +207,8 @@ program_end:
 
 # a1 = N
 # a2 = B
+# a3 = M
 # t9 = B
-# s0 = M
 # s1 = I
 # s2 = J
 # s3 = k
@@ -201,15 +223,15 @@ program_end:
 
 #		$f0 -> Value
 #		$v0 -> Address
-new_get_elem:
-		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
-		multu	$a2, $t1
-		mflo	$t2
-		addu	$t2, $t2, $a0		# Now t2 contains address to row a
-		sll		$t3, $a3, 2			# s0 = 4*b (byte offset of column b)
-		addu	$v0, $t2, $t3		# Now we have address to A[a][b] in v0
-		l.s		$f0, 0($v0)		    # ... and contents of A[a][b] in f0
-		jr		$ra					# jump to $ra
+#new_get_elem:
+#		sll		$t1, N, 2			# s2 = 4*N (number of bytes per row)
+#		multu	X, $t1
+#		mflo	$t2
+#		addu	$t2, $t2, A			# Now t2 contains address to row a
+#		sll		$t3, Y, 2			# s0 = 4*b (byte offset of column b)
+#		addu	ADDRESS, $t2, $t3	# Now we have address to A[a][b] in v0
+#		l.s		DATA, 0(ADDRESS)	# ... and contents of A[a][b] in f0
+#		jr		$ra					# jump to $ra
 		
 
 ##########################################################
