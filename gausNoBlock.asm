@@ -22,6 +22,8 @@ exit:
       	syscall						# exit program
 
 eliminate:
+		addiu	$sp, $sp, -4		# allocate stack frame
+		sw		$ra, 0($sp)			# done saving registers
 		add		$s2, $zero, $zero		# k = 0
 
 for_k:
