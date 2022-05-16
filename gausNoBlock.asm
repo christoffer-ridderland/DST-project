@@ -31,7 +31,7 @@ for_k:
 		addi	$s1, $s2, 1				# j = k+1
 
 for_j1:
-		bge		$s1, $a1, end_program	# if k >= n then target
+		bge		$s1, $a1, set_one	# if k >= n then target
 		#############
 		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
 		multu	$s2, $t1
