@@ -3,6 +3,8 @@
 # s0 = i
 # s1 = j
 # s2 = k
+# s3 = 1
+# f7 = 1.s
 
 start:
 		la		$a0, matrix_4x4		# a0 = A (base address of matrix)
@@ -24,6 +26,9 @@ exit:
 eliminate:
 		addiu	$sp, $sp, -4		# allocate stack frame
 		sw		$ra, 0($sp)			# done saving registers
+		addi	$s3, $zero, 1
+		mtc1 	$s3, $f7
+  		cvt.s.w $f7, $f7
 		add		$s2, $zero, $zero		# k = 0
 
 for_k:
@@ -63,7 +68,8 @@ set_one:
 		addu	$t1, $t2, $t3	# Now we have address to A[a][b] in v0
 		
 		addi	$t4, $zero, 1
-		sw		$t4, 0($t1)
+
+		swc1	$f7, 0($t1)
 
 		addi	$s0, $s2, 1
 
