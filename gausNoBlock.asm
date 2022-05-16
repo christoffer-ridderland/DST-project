@@ -39,8 +39,7 @@ for_j1:
 		bge		$s1, $a1, set_one	# if k >= n then target
 		#############
 		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
-		multu	$s2, $t1
-		mflo	$t2
+		mul		$t2, $s2, $t1
 		addu	$t2, $t2, $a0		# Now t2 contains address to row a
 
 		sll		$t3, $s2, 2			# t3 = 4*b (byte offset of column b)
@@ -60,8 +59,7 @@ for_j1_end:
 
 set_one:
 		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
-		multu	$s2, $t1
-		mflo	$t2
+		mul		$t2, $s2, $t1
 		addu	$t2, $t2, $a0		# Now t2 contains address to row a
 
 		sll		$t3, $s2, 2			# t3 = 4*b (byte offset of column b)
@@ -81,8 +79,7 @@ for_j2:
 		bge		$s1, $a1, set_zero
 
 		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
-		multu	$s2, $t1
-		mflo	$t2
+		mul		$t2, $s2, $t1
 		addu	$t2, $t2, $a0		# Now t2 contains address to row a
 
 		sll		$t3, $s1, 2			# t3 = 4*b (byte offset of column b)
@@ -90,8 +87,7 @@ for_j2:
 		lwc1	$f0, 0($t1)	# ... and contents of A[k][j] in f0				#A[k][j]
 
 		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
-		multu	$s0, $t1
-		mflo	$t2
+		mul	$t2, $s0, $t1
 		addu	$t2, $t2, $a0		# Now t2 contains address to row a
 
 		sll		$t4, $s2, 2			# t3 = 4*b (byte offset of column b)
@@ -114,8 +110,7 @@ for_j2_end:
 		
 set_zero:
 		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
-		multu	$s0, $t1
-		mflo	$t2
+		mul		$t2, $s0, $t1
 		addu	$t2, $t2, $a0		# Now t2 contains address to row a
 
 		sll		$t4, $s2, 2			# t3 = 4*b (byte offset of column b)
