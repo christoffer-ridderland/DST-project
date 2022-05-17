@@ -15,27 +15,27 @@
 # f8 = A[k][k]
 
 eliminate:
-		la		$a0, matrix_24x24		# a0 = A (base address of matrix)
+		la		$a0, matrix_24x24	# a0 = A (base address of matrix)
 		li		$a1, 24				# a1 = N (Number of elems)
 		addi	$s3, $zero, 1
         sll		$v0, $a1, 2			# s2 = 4*N (number of bytes per row)
-		add		$s2, $zero, $zero		# k = 0
+		add		$s2, $zero, $zero	# k = 0
 		mtc1 	$s3, $f7
   		cvt.s.w $f7, $f7
         
-
 for_k:
         # Save A[k][k]
         mul		$t0, $s2, $v0
-		add	$s4, $t0, $a0		# *A[k]
+		add		$s4, $t0, $a0		# *A[k]
 
         sll		$t7, $s2, 2			# s2 = 4*N (number of bytes per row)
-        add	$v1, $s4, $t7	# Now we have address to A[a][b] in v0
-		subi	$a2, $s2, 1				#  = n - 1
-        lwc1	$f8, 0($v1)	# ... and contents of A[k][k] in f0
-
+        add		$v1, $s4, $t7		# Now we have address to A[k][k] in v0
+		subi	$a2, $s2, 1			# a2 = N - 1
 		bge		$a2, $a1, last_row	# if k >= n then target
-		addi	$s1, $s2, 1				# j = k+1
+        lwc1	$f8, 0($v1)			# ... and contents of A[k][k] in f8
+
+
+		addi	$s1, $s2, 1			# j = k+1
 		sll		$s1, $s1, 2			# j = 4(k+1)
 
 
@@ -44,8 +44,8 @@ for_j1:
 		bge		$s1, $v0, set_one	# if k >= n then target
 		#############
 
-		add	$t1, $s4, $s1	# Now we have address to A[a][b] in v0
-		lwc1	$f0, 0($t1)	# ... and contents of A[k][j] in f0
+		add		$t1, $s4, $s1		# Now we have address to A[a][b] in v0
+		lwc1	$f0, 0($t1)			# ... and contents of A[k][j] in f0
 
 		div.s	$f1, $f0, $f8
 		swc1	$f1, 0($t1)
@@ -65,43 +65,42 @@ for_i:
 		move 	$s1, $s6
 
         mul		$t0, $s0, $v0
-		add	$s5, $t0, $a0		# s5 = *A[i]
+		add		$s5, $t0, $a0		# s5 = *A[i]
+		add		$t4, $s5, $t7			# Now we have address to A[i][k]
 
 for_j2:
 		bge		$s1, $v0, set_zero
 
-        add	$t3, $s4, $s1		# Now we have address to A[k][j]
+        add		$t3, $s4, $s1			# Now we have address to A[k][j]
 
-        add	$t4, $s5, $t7		# Now we have address to A[i][k]
+
         lwc1    $f0, 0($t3)
         lwc1    $f1, 0($t4)
         mul.s   $f2, $f0, $f1       # = A[i][k] * A[k][j]
 
-        add	$t3, $s5, $s1       # Now we have address to A[i][j]
+        add		$t3, $s5, $s1       	# Now we have address to A[i][j]
         lwc1    $f1, 0($t3)
 
         sub.s   $f0, $f1, $f2       # = A[i][j] - A[i][k] * A[k][j]
         swc1    $f0, 0($t3)
 
 for_j2_end:
-		b	for_j2
+		b		for_j2
 		addi	$s1, $s1, 4			# j++
 		
 set_zero:
-		add	$t0, $s5, $t7       # t0 = A[i][k]
-		sw		$zero, 0($t0)
+		sw		$zero, 0($t4)
 		
-
 for_i_end:
-		b		for_i			# branch to for_i
-		addi	$s0, $s0, 1		# i++
+		b		for_i				# branch to for_i
+		addi	$s0, $s0, 1			# i++
 
 for_k_end:
 		b		for_k
-		addi	$s2, $s2, 1		# i++
+		addi	$s2, $s2, 1			# i++
 last_row:
 		mul		$t2, $s0, $v0
-		add	$t2, $t2, $a0		# Now t2 contains address to row a
+		add		$t2, $t2, $a0			# Now t2 contains address to row a
 
 		sw		$zero, 0($t2)		#flytta ut sista loopen
 		sw		$zero, 4($t2)
