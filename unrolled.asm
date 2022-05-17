@@ -42,7 +42,7 @@ eliminate:
 
 for_k:
 		subi	$a2, $s2, 1				#  = n - 1
-		bge		$a2, $a1, last_row	# if k >= n then target
+		bge		$a2, $v0, last_row	# if k >= n then target
 		addi	$s1, $s2, 1				# j = k+1
 
         # Save A[k][k]
@@ -54,7 +54,7 @@ for_k:
         lwc1	$f8, 0($v1)	# ... and contents of A[k][k] in f0
 
 for_j1:
-		bge		$s1, $a1, set_one	# if k >= n then target
+		bge		$s1, $v0, set_one	# if k >= n then target
 		#############
 
 		sll		$t0, $s1, 2			# t3 = 4*b (byte offset of column b)
@@ -74,14 +74,14 @@ set_one:
 		addi	$s0, $s2, 1
 
 for_i:
-		bge		$s0, $a1, for_k_end
+		bge		$s0, $v0, for_k_end
 		addi	$s1, $s2, 1
 
         mul		$t0, $s0, $v0
 		addu	$s5, $t0, $a0		# s5 = *A[i]
 
 for_j2:
-		bge		$s1, $a1, set_zero
+		bge		$s1, $v0, set_zero
 
         sll     $t0, $s1, 2
         addu	$t3, $s4, $t0		# Now we have address to A[k][j]
@@ -117,8 +117,7 @@ for_k_end:
 		b		for_k
 		addi	$s2, $s2, 1		# i++
 last_row:
-		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
-		mul		$t2, $s0, $t1
+		mul		$t2, $s0, $v0
 		addu	$t2, $t2, $a0		# Now t2 contains address to row a
 
 		sw		$zero, 0($t2)		#flytta ut sista loopen
@@ -144,7 +143,6 @@ last_row:
 		sw		$zero, 80($t2)
 		sw		$zero, 84($t2)
 		sw		$zero, 88($t2)
-
 
 		swc1	$f7, 92($t2)
 end_program:
