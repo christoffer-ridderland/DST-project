@@ -27,10 +27,10 @@ eliminate:
 for_k:
         # Save A[k][k]
         mul		$t0, $s2, $v0
-		addu	$s4, $t0, $a0		# *A[k]
+		add	$s4, $t0, $a0		# *A[k]
 
         sll		$t7, $s2, 2			# s2 = 4*N (number of bytes per row)
-        addu	$v1, $s4, $t7	# Now we have address to A[a][b] in v0
+        add	$v1, $s4, $t7	# Now we have address to A[a][b] in v0
 		subi	$a2, $s2, 1				#  = n - 1
         lwc1	$f8, 0($v1)	# ... and contents of A[k][k] in f0
 
@@ -44,7 +44,7 @@ for_j1:
 		bge		$s1, $v0, set_one	# if k >= n then target
 		#############
 
-		addu	$t1, $s4, $s1	# Now we have address to A[a][b] in v0
+		add	$t1, $s4, $s1	# Now we have address to A[a][b] in v0
 		lwc1	$f0, 0($t1)	# ... and contents of A[k][j] in f0
 
 		div.s	$f1, $f0, $f8
@@ -65,19 +65,19 @@ for_i:
 		move 	$s1, $s6
 
         mul		$t0, $s0, $v0
-		addu	$s5, $t0, $a0		# s5 = *A[i]
+		add	$s5, $t0, $a0		# s5 = *A[i]
 
 for_j2:
 		bge		$s1, $v0, set_zero
 
-        addu	$t3, $s4, $s1		# Now we have address to A[k][j]
+        add	$t3, $s4, $s1		# Now we have address to A[k][j]
 
-        addu	$t4, $s5, $t7		# Now we have address to A[i][k]
+        add	$t4, $s5, $t7		# Now we have address to A[i][k]
         lwc1    $f0, 0($t3)
         lwc1    $f1, 0($t4)
         mul.s   $f2, $f0, $f1       # = A[i][k] * A[k][j]
 
-        addu	$t3, $s5, $s1       # Now we have address to A[i][j]
+        add	$t3, $s5, $s1       # Now we have address to A[i][j]
         lwc1    $f1, 0($t3)
 
         sub.s   $f0, $f1, $f2       # = A[i][j] - A[i][k] * A[k][j]
@@ -101,7 +101,7 @@ for_k_end:
 		addi	$s2, $s2, 1		# i++
 last_row:
 		mul		$t2, $s0, $v0
-		addu	$t2, $t2, $a0		# Now t2 contains address to row a
+		add	$t2, $t2, $a0		# Now t2 contains address to row a
 
 		sw		$zero, 0($t2)		#flytta ut sista loopen
 		sw		$zero, 4($t2)
@@ -148,7 +148,7 @@ end_program:
 
 
 print_matrix:
-		addiu	$sp,  $sp, -20		# allocate stack frame
+		addi	$sp,  $sp, -20		# allocate stack frame
 		sw		$ra,  16($sp)
 		sw      $s2,  12($sp)
 		sw		$s1,  8($sp)
@@ -167,14 +167,14 @@ loop_s0:
 		li		$v0,  4				# specify print string system call
 		syscall						# print spaces
 
-		addiu	$s2,  $s2, 4		# increment pointer by 4
+		addi	$s2,  $s2, 4		# increment pointer by 4
 
-		addiu	$s0,  $s0, 1        # increment s0
+		addi	$s0,  $s0, 1        # increment s0
 		blt		$s0,  $a1, loop_s0  # loop while s0 < a1
 		nop
 		la		$a0,  newline
 		syscall						# print newline
-		addiu	$s1,  $s1, 1		# increment s1
+		addi	$s1,  $s1, 1		# increment s1
 		blt		$s1,  $a1, loop_s1  # loop while s1 < a1
 		nop
 		la		$a0,  newline
@@ -185,7 +185,7 @@ loop_s0:
 		lw		$s1,  8($sp)
 		lw		$s0,  4($sp)
 		lw		$a0,  0($sp)		# done restoring registers
-		addiu	$sp,  $sp, 20		# remove stack frame
+		addi	$sp,  $sp, 20		# remove stack frame
 
 		jr		$ra					# return from subroutine
 		nop							# this is the delay slot associated with all types of jumps
