@@ -88,7 +88,7 @@ for_j2_end:
 		addi	$s1, $s1, 4			# j++
 		
 set_zero:
-		addu	$t0, $s5, $t7       # t0 = A[i][k]
+		add	$t0, $s5, $t7       # t0 = A[i][k]
 		sw		$zero, 0($t0)
 		
 
