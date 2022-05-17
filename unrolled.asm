@@ -99,9 +99,6 @@ for_j2:
         sub.s   $f0, $f1, $f2       # = A[i][j] - A[i][k] * A[k][j]
         swc1    $f0, 0($t3)
 
-		
-
-
 for_j2_end:
 		b	for_j2
 		addi	$s1, $s1, 1			# j++

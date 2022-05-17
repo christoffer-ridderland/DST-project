@@ -9,6 +9,7 @@
 # s3 = 1
 # s4 = *A[k]
 # s5 = *A[i]
+# s6 = 4(k+1)
 # t7 = k<<2
 # f7 = 1.s
 # f8 = A[k][k]
@@ -57,37 +58,34 @@ set_one:
 		swc1	$f7, 0($v1)
 
 		addi	$s0, $s2, 1
+		sll 	$s6, $s0, 2
 
 for_i:
 		bge		$s0, $a1, for_k_end
-		addi	$s1, $s2, 1
+		move 	$s1, $s6
 
         mul		$t0, $s0, $v0
 		addu	$s5, $t0, $a0		# s5 = *A[i]
 
 for_j2:
-		bge		$s1, $a1, set_zero
+		bge		$s1, $v0, set_zero
 
-        sll     $t0, $s1, 2
-        addu	$t3, $s4, $t0		# Now we have address to A[k][j]
+        addu	$t3, $s4, $s1		# Now we have address to A[k][j]
 
         addu	$t4, $s5, $t7		# Now we have address to A[i][k]
         lwc1    $f0, 0($t3)
         lwc1    $f1, 0($t4)
         mul.s   $f2, $f0, $f1       # = A[i][k] * A[k][j]
 
-        addu	$t3, $s5, $t0       # Now we have address to A[i][j]
+        addu	$t3, $s5, $s1       # Now we have address to A[i][j]
         lwc1    $f1, 0($t3)
 
         sub.s   $f0, $f1, $f2       # = A[i][j] - A[i][k] * A[k][j]
         swc1    $f0, 0($t3)
 
-		
-
-
 for_j2_end:
 		b	for_j2
-		addi	$s1, $s1, 1			# j++
+		addi	$s1, $s1, 4			# j++
 		
 set_zero:
 		addu	$t0, $s5, $t7       # t0 = A[i][k]
