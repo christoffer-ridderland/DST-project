@@ -41,10 +41,6 @@ eliminate:
         
 
 for_k:
-		subi	$a2, $s2, 1				#  = n - 1
-		bge		$a2, $a1, last_row	# if k >= n then target
-		addi	$s1, $s2, 1				# j = k+1
-
         # Save A[k][k]
         mul		$t0, $s2, $v0
 		addu	$s4, $t0, $a0		# *A[k]
@@ -53,12 +49,18 @@ for_k:
         addu	$v1, $s4, $t7	# Now we have address to A[a][b] in v0
         lwc1	$f8, 0($v1)	# ... and contents of A[k][k] in f0
 
+		subi	$a2, $s2, 1				#  = n - 1
+		bge		$a2, $a1, last_row	# if k >= n then target
+		addi	$s1, $s2, 1				# j = k+1
+		sll		$s1, $s1, 2			# j = 4(k+1)
+
+
+
 for_j1:
-		bge		$s1, $a1, set_one	# if k >= n then target
+		bge		$s1, $v0, set_one	# if k >= n then target
 		#############
 
-		sll		$t0, $s1, 2			# t3 = 4*b (byte offset of column b)
-		addu	$t1, $s4, $t0	# Now we have address to A[a][b] in v0
+		addu	$t1, $s4, $s1	# Now we have address to A[a][b] in v0
 		lwc1	$f0, 0($t1)	# ... and contents of A[k][j] in f0
 
 		div.s	$f1, $f0, $f8
@@ -66,7 +68,7 @@ for_j1:
 		##############
 for_j1_end:
 		b		for_j1
-		addi	$s1, $s1, 1
+		addi	$s1, $s1, 4
 
 set_one:
 		swc1	$f7, 0($v1)
@@ -117,8 +119,7 @@ for_k_end:
 		b		for_k
 		addi	$s2, $s2, 1		# i++
 last_row:
-		sll		$t1, $a1, 2			# s2 = 4*N (number of bytes per row)
-		mul		$t2, $s0, $t1
+		mul		$t2, $s0, $v0
 		addu	$t2, $t2, $a0		# Now t2 contains address to row a
 
 		sw		$zero, 0($t2)		#flytta ut sista loopen
@@ -149,10 +150,9 @@ last_row:
 		swc1	$f7, 92($t2)
 end_program:
 		lw		$ra, 0($sp)			# done restoring registers
+		jr		$ra					# return from subroutine
 		addiu	$sp, $sp, 4			# remove stack frame
 
-		jr		$ra					# return from subroutine
-		nop							# this is the delay slot associated with all types of jumps
 
 
 
