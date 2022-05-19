@@ -10,6 +10,7 @@
 # s4 = *A[k]
 # s5 = *A[i]
 # s6 = 4(k+1)
+# s7 = A[k+1][0]
 # t7 = k<<2
 # f7 = 1.s
 # f8 = A[k][k]
@@ -35,20 +36,20 @@ for_k:
         lwc1	$f8, 0($v1)			# ... and contents of A[k][k] in f8
 
 
-		addi	$s1, $s2, 1			# j = k+1
-		sll		$s1, $s1, 2			# j = 4(k+1)
+		addi	$s0, $s2, 1			# s0 = k + 1
+		sll 	$s6, $s0, 2			# s6 = 4(k+1)
+		add		$s7, $s4, $v0		# s7 = A[k+1][0]
+		add		$s1, $s6, $s4		# j = A[k][k+1]
 
 
 
 for_j1:
-		bge		$s1, $v0, set_one	# if k >= n then target
+		bge		$s1, $s7, set_one	# if k >= n then target
 		#############
-
-		add		$t1, $s4, $s1		# Now we have address to A[a][b] in v0
-		lwc1	$f0, 0($t1)			# ... and contents of A[k][j] in f0
+		lwc1	$f0, 0($s1)			# ... and contents of A[k][j] in f0
 
 		div.s	$f1, $f0, $f8
-		swc1	$f1, 0($t1)
+		swc1	$f1, 0($s1)
 		##############
 for_j1_end:
 		b		for_j1
@@ -57,8 +58,7 @@ for_j1_end:
 set_one:
 		swc1	$f7, 0($v1)
 
-		addi	$s0, $s2, 1
-		sll 	$s6, $s0, 2
+
 
 for_i:
 		bge		$s0, $a1, for_k_end
