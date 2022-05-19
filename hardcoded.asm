@@ -98,35 +98,31 @@ for_k_end:
 		b		for_k
 		addi	$s2, $s2, 1			# k++
 last_row:
-		mul		$t2, $s0, $v0		# t2 = i * 4N
-		add		$t2, $t2, $a0		# Now t2 contains address to row a
 
-		sw		$zero, 0($t2)		#flytta ut sista loopen
-		sw		$zero, 4($t2)
-		sw		$zero, 8($t2)
-		sw		$zero, 12($t2)
-		sw		$zero, 16($t2)
-		sw		$zero, 20($t2)
-		sw		$zero, 24($t2)
-		sw		$zero, 28($t2)
-		sw		$zero, 32($t2)
-		sw		$zero, 36($t2)
-		sw		$zero, 40($t2)
-		sw		$zero, 44($t2)
-		sw		$zero, 48($t2)
-		sw		$zero, 52($t2)
-		sw		$zero, 56($t2)
-		sw		$zero, 60($t2)
-		sw		$zero, 64($t2)
-		sw		$zero, 68($t2)
-		sw		$zero, 72($t2)
-		sw		$zero, 76($t2)
-		sw		$zero, 80($t2)
-		sw		$zero, 84($t2)
-		sw		$zero, 88($t2)
-
-
-		swc1	$f7, 92($t2)
+		sw		$zero, 2208($zero)		#flytta ut sista loopen
+		sw		$zero, 2212($zero)
+		sw		$zero, 2216($zero)
+		sw		$zero, 2220($zero)
+		sw		$zero, 2224($zero)
+		sw		$zero, 2228($zero)
+		sw		$zero, 2232($zero)
+		sw		$zero, 2236($zero)
+		sw		$zero, 2240($zero)
+		sw		$zero, 2244($zero)
+		sw		$zero, 2248($zero)
+		sw		$zero, 2252($zero)
+		sw		$zero, 2256($zero)
+		sw		$zero, 2260($zero)
+		sw		$zero, 2264($zero)
+		sw		$zero, 2268($zero)
+		sw		$zero, 2272($zero)
+		sw		$zero, 2276($zero)
+		sw		$zero, 2280($zero)
+		sw		$zero, 2284($zero)
+		sw		$zero, 2288($zero)
+		sw		$zero, 2292($zero)
+		sw		$zero, 2296($zero)
+		swc1	$f7, 2300($t2)
 end_program:
 		li   	$v0, 10          	# specify exit system call
       	syscall						# exit program
