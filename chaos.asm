@@ -47,13 +47,16 @@ for_j1:
 		bge		$s1, $s7, set_one	# if k >= n then target
 		#############
 		lwc1	$f0, 0($s1)			# ... and contents of A[k][j] in f0
+        lwc1	$f2, 4($s1)			# ... and contents of A[k][j+1] in f2
 
 		div.s	$f1, $f0, $f8
+        div.s   $f3, $f2, $f8
 		swc1	$f1, 0($s1)
+        swc1    $f3, 4($s1)
 		##############
 for_j1_end:
 		b		for_j1
-		addi	$s1, $s1, 4
+		addi	$s1, $s1, 8
 
 set_one:
 		swc1	$f7, 0($v1)
@@ -129,6 +132,7 @@ last_row:
 
 		swc1	$f7, 92($t2)
 end_program:
+        #jal     print_matrix
 		li   	$v0, 10          	# specify exit system call
       	syscall						# exit program
 
