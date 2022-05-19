@@ -32,7 +32,7 @@ for_k:
         sll		$t7, $s2, 2			# s2 = 4*N (number of bytes per row)
         add		$v1, $s4, $t7		# Now we have address to A[k][k] in v0
 		subi	$a2, $s2, 1			# a2 = N - 1
-		bge		$a2, $a1, last_row	# if k >= n then target
+		beq		$a2, $a1, last_row	# if k >= n then target
         lwc1	$f8, 0($v1)			# ... and contents of A[k][k] in f8
 
 
@@ -44,19 +44,16 @@ for_k:
 
 
 for_j1:
-		bge		$s1, $s7, set_one	# if k >= n then target
+		beq		$s1, $s7, set_one	# if k >= n then target
 		#############
 		lwc1	$f0, 0($s1)			# ... and contents of A[k][j] in f0
-        lwc1	$f2, 4($s1)			# ... and contents of A[k][j+1] in f2
 
 		div.s	$f1, $f0, $f8
-        div.s   $f3, $f2, $f8
 		swc1	$f1, 0($s1)
-        swc1    $f3, 4($s1)
 		##############
 for_j1_end:
 		b		for_j1
-		addi	$s1, $s1, 8
+		addi	$s1, $s1, 4
 
 set_one:
 		swc1	$f7, 0($v1)
@@ -64,7 +61,7 @@ set_one:
 
 
 for_i:
-		bge		$s0, $a1, for_k_end
+		beq		$s0, $a1, for_k_end
 		move 	$s1, $s6
 
         mul		$t0, $s0, $v0
@@ -72,7 +69,7 @@ for_i:
 		add		$t4, $s5, $t7			# Now we have address to A[i][k]
 
 for_j2:
-		bge		$s1, $v0, set_zero
+		beq		$s1, $v0, set_zero
 
         add		$t3, $s4, $s1			# Now we have address to A[k][j]
 
