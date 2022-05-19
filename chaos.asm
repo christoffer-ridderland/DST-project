@@ -14,6 +14,7 @@
 # t7 = k<<2
 # f7 = 1.s
 # f8 = A[k][k]
+# f9 = 1/ A[k][k]
 
 eliminate:
 		la		$a0, matrix_24x24	# a0 = A (base address of matrix)
@@ -26,7 +27,7 @@ eliminate:
         
 for_k:
         # Save A[k][k]
-        mul		$t0, $s2, $v0
+        mul		$t0, $s2, $v0		# t0 = k * 4N
 		add		$s4, $t0, $a0		# *A[k]
 
         sll		$t7, $s2, 2			# s2 = 4*N (number of bytes per row)
@@ -41,22 +42,19 @@ for_k:
 		add		$s7, $s4, $v0		# s7 = A[k+1][0]
 		add		$s1, $s6, $s4		# j = A[k][k+1]
 
-
+		div.s	$f9, $f7, $f8
 
 for_j1:
 		bge		$s1, $s7, set_one	# if k >= n then target
 		#############
 		lwc1	$f0, 0($s1)			# ... and contents of A[k][j] in f0
-        lwc1	$f2, 4($s1)			# ... and contents of A[k][j+1] in f2
 
-		div.s	$f1, $f0, $f8
-        div.s   $f3, $f2, $f8
-		swc1	$f1, 0($s1)
-        swc1    $f3, 4($s1)
+		mul.s	$f1, $f0, $f9		# f1 = A[k][j] / A[k][k]
+		swc1	$f1, 0($s1)			# A[k][j] = A[k][j] / A[k][k]
 		##############
 for_j1_end:
 		b		for_j1
-		addi	$s1, $s1, 8
+		addi	$s1, $s1, 4
 
 set_one:
 		swc1	$f7, 0($v1)
@@ -132,7 +130,6 @@ last_row:
 
 		swc1	$f7, 92($t2)
 end_program:
-        #jal     print_matrix
 		li   	$v0, 10          	# specify exit system call
       	syscall						# exit program
 
