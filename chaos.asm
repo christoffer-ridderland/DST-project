@@ -27,10 +27,7 @@ eliminate:
         
 for_k:
         # Save A[k][k]
-        add     $t0, $s2, $s2
-        add     $t0, $t0, $s2
-        sll     $t0, $t0, 5
-        #mul		$t0, $s2, $v0		# t0 = k * 4N
+        mul		$t0, $s2, $v0		# t0 = k * 4N
 		add		$s4, $t0, $a0		# *A[k]
 
         sll		$t7, $s2, 2			# s2 = 4*N (number of bytes per row)
@@ -65,12 +62,8 @@ for_i:
 		bge		$s0, $a1, for_k_end	# 
 		move 	$s1, $s6
 
-        #mul		$t0, $s0, $v0
-		add     $t0, $s0, $s0
-        add     $t0, $t0, $s0
-        sll     $t0, $t0, 5
-
-        add		$s5, $t0, $a0		# s5 = *A[i]
+        mul		$t0, $s0, $v0
+		add		$s5, $t0, $a0		# s5 = *A[i]
 		add		$t4, $s5, $t7			# Now we have address to A[i][k]
 
 for_j2:
@@ -104,11 +97,7 @@ for_k_end:
 		b		for_k
 		addi	$s2, $s2, 1			# i++
 last_row:
-		#mul		$t2, $s0, $v0
-        add     $t2, $s0, $s0
-        add     $t2, $t2, $s0
-        sll     $t2, $t2, 5
-
+		mul		$t2, $s0, $v0
 		add		$t2, $t2, $a0			# Now t2 contains address to row a
 
 		sw		$zero, 0($t2)		#flytta ut sista loopen
