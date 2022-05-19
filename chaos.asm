@@ -53,16 +53,13 @@ for_j1:
 		swc1	$f1, 0($s1)			# A[k][j] = A[k][j] / A[k][k]
 		##############
 for_j1_end:
-		b		for_j1
-		addi	$s1, $s1, 4
+		b		for_j1				# b to  j1
+		addi	$s1, $s1, 4			# j+=4
 
 set_one:
-		swc1	$f7, 0($v1)
-
-
-
+		swc1	$f7, 0($v1)			# A[k][k] = 1.0
 for_i:
-		bge		$s0, $a1, for_k_end
+		bge		$s0, $a1, for_k_end	# 
 		move 	$s1, $s6
 
         mul		$t0, $s0, $v0
