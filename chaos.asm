@@ -22,8 +22,8 @@ eliminate:
 		addi	$s3, $zero, 1
         sll		$v0, $a1, 2			# s2 = 4*N (number of bytes per row)
 		add		$s2, $zero, $zero	# k = 0
-		mtc1 	$s3, $f7
-  		cvt.s.w $f7, $f7
+		mtc1 	$s3, $f7			# f7 = 1
+  		cvt.s.w $f7, $f7			# f7 = 1.0
         
 for_k:
         # Save A[k][k]
@@ -36,13 +36,12 @@ for_k:
 		bge		$a2, $a1, last_row	# if k >= n then target
         lwc1	$f8, 0($v1)			# ... and contents of A[k][k] in f8
 
-
 		addi	$s0, $s2, 1			# s0 = k + 1
 		sll 	$s6, $s0, 2			# s6 = 4(k+1)
 		add		$s7, $s4, $v0		# s7 = A[k+1][0]
 		add		$s1, $s6, $s4		# j = A[k][k+1]
 
-		div.s	$f9, $f7, $f8
+		div.s	$f9, $f7, $f8		# f9 = 1 / A[k][k]
 
 for_j1:
 		bge		$s1, $s7, set_one	# if k >= n then target
@@ -59,35 +58,35 @@ for_j1_end:
 set_one:
 		swc1	$f7, 0($v1)			# A[k][k] = 1.0
 for_i:
-		bge		$s0, $a1, for_k_end	# 
-		move 	$s1, $s6
+		bge		$s0, $a1, for_k_end	
+		move 	$s1, $s6			# j = 4(k+1)
 
-        mul		$t0, $s0, $v0
+        mul		$t0, $s0, $v0		# t0 = i * 4N
 		add		$s5, $t0, $a0		# s5 = *A[i]
-		add		$t4, $s5, $t7			# Now we have address to A[i][k]
+		add		$t4, $s5, $t7		# Now we have address to A[i][k]
 
 for_j2:
-		bge		$s1, $v0, set_zero
+		bge		$s1, $v0, set_zero		
 
-        add		$t3, $s4, $s1			# Now we have address to A[k][j]
+        add		$t3, $s4, $s1		# Now we have address to A[k][j]
 
 
-        lwc1    $f0, 0($t3)
-        lwc1    $f1, 0($t4)
+        lwc1    $f0, 0($t3)			# f0 = A[k][j]
+        lwc1    $f1, 0($t4)			# f1 = A[i][k]
         mul.s   $f2, $f0, $f1       # = A[i][k] * A[k][j]
 
-        add		$t3, $s5, $s1       	# Now we have address to A[i][j]
-        lwc1    $f1, 0($t3)
+        add		$t3, $s5, $s1       # Now we have address to A[i][j]
+        lwc1    $f1, 0($t3)			# f1 = A[i][j]
 
-        sub.s   $f0, $f1, $f2       # = A[i][j] - A[i][k] * A[k][j]
-        swc1    $f0, 0($t3)
+        sub.s   $f0, $f1, $f2       # f0 = A[i][j] - A[i][k] * A[k][j]
+        swc1    $f0, 0($t3)			# A[i][j] = A[i][j] - A[i][k] * A[k][j]
 
 for_j2_end:
 		b		for_j2
-		addi	$s1, $s1, 4			# j++
+		addi	$s1, $s1, 4			# j+=4
 		
 set_zero:
-		sw		$zero, 0($t4)
+		sw		$zero, 0($t4)		# A[i][k] = 0
 		
 for_i_end:
 		b		for_i				# branch to for_i
@@ -95,10 +94,10 @@ for_i_end:
 
 for_k_end:
 		b		for_k
-		addi	$s2, $s2, 1			# i++
+		addi	$s2, $s2, 1			# k++
 last_row:
-		mul		$t2, $s0, $v0
-		add		$t2, $t2, $a0			# Now t2 contains address to row a
+		mul		$t2, $s0, $v0		# t2 = i * 4N
+		add		$t2, $t2, $a0		# Now t2 contains address to row a
 
 		sw		$zero, 0($t2)		#flytta ut sista loopen
 		sw		$zero, 4($t2)
