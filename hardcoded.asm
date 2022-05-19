@@ -122,7 +122,7 @@ last_row:
 		sw		$zero, 2288($zero)
 		sw		$zero, 2292($zero)
 		sw		$zero, 2296($zero)
-		swc1	$f7, 2300($t2)
+		swc1	$f7, 2300($zero)
 end_program:
 		li   	$v0, 10          	# specify exit system call
       	syscall						# exit program
