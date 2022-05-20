@@ -34,18 +34,20 @@ for_k:
         sll		$t7, $s2, 2			# s2 = 4*N (number of bytes per row)
         add		$v1, $s4, $t7		# Now we have address to A[k][k] in v0
 		subi	$a2, $s2, 1			# a2 = N - 1
-		bge		$a2, $a1, last_row	# if k >= n then target
+		bge		$s2, $a1, last_row	# if k >= n then target
         lwc1	$f8, 0($v1)			# ... and contents of A[k][k] in f8
 
 		addi	$s0, $s2, 1			# s0 = k + 1
 		sll 	$s6, $s0, 2			# s6 = 4(k+1)
 		add		$s7, $s4, $v0		# s7 = A[k+1][0]
 		add		$s1, $s6, $s4		# j = A[k][k+1]
+		
+		beq		$s1, $s7, set_one	# if k >= n then target
+		subi	$t9, $s7, 4
 
 		div.s	$f9, $f7, $f8		# f9 = 1 / A[k][k]
 
 for_j1:
-		bge		$s1, $s7, set_one	# if k >= n then target
 		#############
 		lwc1	$f0, 0($s1)			# ... and contents of A[k][j] in f0
 
@@ -53,7 +55,7 @@ for_j1:
 		swc1	$f1, 0($s1)			# A[k][j] = A[k][j] / A[k][k]
 		##############
 for_j1_end:
-		b		for_j1				# b to j1
+		bne		$s1, $t9, for_j1	# if k >= n then target
 		addi	$s1, $s1, 4			# j+=4
 
 set_one:
