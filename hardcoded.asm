@@ -11,8 +11,10 @@
 # s5 = *A[i]
 # s6 = 4(k+1)
 # s7 = A[k+1][0]
+# t6 = 92
 # t7 = k<<2
 # t8 = 96k
+# t9 = A[k][23]
 # f7 = 1.s
 # f8 = A[k][k]
 # f9 = 1/ A[k][k]
@@ -20,7 +22,8 @@
 eliminate:
 		la		$a0, matrix_24x24	# a0 = A (base address of matrix)
 		li		$a1, 24				# a1 = N (Number of elems)
-		addi	$s3, $zero, 1
+		li		$s3, 1
+		li 		$t6, 92
         sll		$v0, $a1, 2			# s2 = 4*N (number of bytes per row)
 		add		$s2, $zero, $zero	# k = 0
 		add		$t8, $zero, $zero	# k = 0
@@ -66,10 +69,9 @@ for_i:
 
         mul		$t0, $s0, $v0		# t0 = i * 4N
 		add		$s5, $t0, $a0		# s5 = *A[i]
+		beq		$s1, $v0, set_zero	
 		add		$t4, $s5, $t7		# Now we have address to A[i][k]
 for_j2:
-		bge		$s1, $v0, set_zero		
-
         add		$t3, $s4, $s1		# Now we have address to A[k][j]
 
         lwc1    $f0, 0($t3)			# f0 = A[k][j]
@@ -81,8 +83,8 @@ for_j2:
         sub.s   $f0, $f3, $f2       # f0 = A[i][j] - A[i][k] * A[k][j]
         swc1    $f0, 0($t3)			# A[i][j] = A[i][j] - A[i][k] * A[k][j]
 
-for_j2_end:
-		b		for_j2
+for_j2_end:		
+		bne		$s1, $t6, for_j2	
 		addi	$s1, $s1, 4			# j+=4
 		
 set_zero:
