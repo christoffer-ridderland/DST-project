@@ -53,7 +53,7 @@ for_j1:
 		swc1	$f1, 0($s1)			# A[k][j] = A[k][j] / A[k][k]
 		##############
 for_j1_end:
-		b		for_j1				# b to  j1
+		b		for_j1				# b to j1
 		addi	$s1, $s1, 4			# j+=4
 
 set_one:
@@ -65,21 +65,18 @@ for_i:
         mul		$t0, $s0, $v0		# t0 = i * 4N
 		add		$s5, $t0, $a0		# s5 = *A[i]
 		add		$t4, $s5, $t7		# Now we have address to A[i][k]
-
 for_j2:
 		bge		$s1, $v0, set_zero		
 
         add		$t3, $s4, $s1		# Now we have address to A[k][j]
 
-
         lwc1    $f0, 0($t3)			# f0 = A[k][j]
         lwc1    $f1, 0($t4)			# f1 = A[i][k]
+		add		$t3, $s5, $s1       # Now we have address to A[i][j]
+        lwc1    $f3, 0($t3)			# f1 = A[i][j]
         mul.s   $f2, $f0, $f1       # = A[i][k] * A[k][j]
 
-        add		$t3, $s5, $s1       # Now we have address to A[i][j]
-        lwc1    $f1, 0($t3)			# f1 = A[i][j]
-
-        sub.s   $f0, $f1, $f2       # f0 = A[i][j] - A[i][k] * A[k][j]
+        sub.s   $f0, $f3, $f2       # f0 = A[i][j] - A[i][k] * A[k][j]
         swc1    $f0, 0($t3)			# A[i][j] = A[i][j] - A[i][k] * A[k][j]
 
 for_j2_end:
@@ -94,7 +91,7 @@ for_i_end:
 		addi	$s0, $s0, 1			# i++
 
 for_k_end:
-		addi	$t8, $t8, 96
+		addi	$t8, $t8, 96		# k96 += 96
 		b		for_k
 		addi	$s2, $s2, 1			# k++
 last_row:
