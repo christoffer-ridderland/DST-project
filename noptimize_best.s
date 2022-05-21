@@ -35,7 +35,6 @@ eliminate:
 		mtc1 	$s3, $f7			# f7 = 1
   		cvt.s.w $f7, $f7			# f7 = 1.0
 for_k:
-        # Save A[k][k]
 		add		$s4, $t8, $a0		# *A[k]
         sll		$t7, $s2, 2			# t7 = 4*k (number of bytes per row)
         add		$v1, $s4, $t7		# Now we have address to A[k][k] in v0
@@ -49,11 +48,9 @@ for_k:
 		subi	$t9, $s7, 4
 		div.s	$f9, $f7, $f8		# f9 = 1 / A[k][k]
 for_j1:
-		#############
 		lwc1	$f0, 0($s1)			# ... and contents of A[k][j] in f0
 		mul.s	$f1, $f0, $f9		# f1 = A[k][j] / A[k][k]
 		swc1	$f1, 0($s1)			# A[k][j] = A[k][j] / A[k][k]
-		##############
 for_j1_end:
 		bne		$s1, $t9, for_j1	# if k >= n then target
 		addi	$s1, $s1, 4			# j+=4
@@ -63,31 +60,26 @@ set_one:
 		swc1	$f7, 0($v1)			# A[k][k] = 1.0
 for_i:
 		move 	$s1, $s6			# j = 4(k+1)
-        #mul		$t0, $s0, $v0	# t0 = i * 4N
 		add		$s5, $s0, $a0		# s5 = *A[i]
 		beq		$s1, $v0, set_zero	
 		add		$t2, $s5, $t7		# Now we have address to A[i][k]
 for_j2:
         add		$t1, $s4, $s1		# Now we have address to A[k][j]
+		add		$t3, $s5, $s1       # Now we have address to A[i][j]
         lwc1    $f0, 0($t1)			# f0 = A[k][j]
         lwc1    $f1, 0($t2)			# f1 = A[i][k]
-		add		$t1, $s5, $s1       # Now we have address to A[i][j]
-        lwc1    $f3, 0($t1)			# f1 = A[i][j]
+        lwc1    $f3, 0($t3)			# f1 = A[i][j]
         mul.s   $f2, $f0, $f1       # = A[i][k] * A[k][j]
-        sub.s   $f0, $f3, $f2       # f0 = A[i][j] - A[i][k] * A[k][j]
-        swc1    $f0, 0($t1)			# A[i][j] = A[i][j] - A[i][k] * A[k][j]
-
+        sub.s   $f4, $f3, $f2       # f0 = A[i][j] - A[i][k] * A[k][j]
+        swc1    $f4, 0($t3)			# A[i][j] = A[i][j] - A[i][k] * A[k][j]
 for_j2_end:		
 		bne		$s1, $t6, for_j2	#branch if j != 92
 		addi	$s1, $s1, 4			# j+=4
-		
 set_zero:
 		sw		$zero, 0($t2)		# A[i][k] = 0
-		
 for_i_end:
 		bne 	$s0, $t4, for_i		# branch if i != 2208
 		addi	$s0, $s0, 96		# i+=96
-
 for_k_end:
 		addi	$s2, $s2, 1			# k++
 		bne		$s2, $a1, for_k		# if k < n then target
