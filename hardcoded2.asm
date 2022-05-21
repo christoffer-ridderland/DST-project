@@ -20,11 +20,11 @@
 # f7 = 1.s
 # f8 = A[k][k]
 # f9 = 1/ A[k][k]
-
+### START
 eliminate:
 		la		$a0, matrix_24x24	# a0 = A (base address of matrix)
 		li		$a1, 24				# a1 = N (Number of elems)
-		li 		$a2, 23
+		#li 		$a2, 23
 		li		$s3, 1
 		li 		$t6, 92
 		li 		$t5, 2304
@@ -42,7 +42,7 @@ for_k:
 
         lwc1	$f8, 0($v1)			# ... and contents of A[k][k] in f8
 		addi	$s0, $s2, 1			# s0 = k + 1
-		sll 	$s6, $s0, 2			# s6 = 4(k+1)
+		sll 	$s6, $s0, 2			# s6 = 4(k+1) ############################## var kommer s0 ifrån???? ska ändras
 		add		$s7, $s4, $v0		# s7 = A[k+1][0]
 		add		$s1, $s6, $s4		# j = A[k][k+1]
 		beq		$s1, $s7, set_one	# if k >= n then target
@@ -63,7 +63,7 @@ set_one:
 		swc1	$f7, 0($v1)			# A[k][k] = 1.0
 for_i:
 		move 	$s1, $s6			# j = 4(k+1)
-        #mul	$t0, $s0, $v0	# t0 = i * 4N
+        #mul		$t0, $s0, $v0	# t0 = i * 4N
 		add		$s5, $s0, $a0		# s5 = *A[i]
 		beq		$s1, $v0, set_zero	
 		add		$t2, $s5, $t7		# Now we have address to A[i][k]
@@ -90,37 +90,37 @@ for_i_end:
 
 for_k_end:
 		addi	$s2, $s2, 1			# k++
-		bne		$s2, $a2, for_k		# if k < n then target
+		bne		$s2, $a1, for_k		# if k < n then target
 		addi	$t8, $t8, 96		# k96 += 96
 last_row:
-		sw		$zero, 2208($a0)		#flytta ut sista loopen
-		sw		$zero, 2212($a0)
-		sw		$zero, 2216($a0)
-		sw		$zero, 2220($a0)
-		sw		$zero, 2224($a0)
-		sw		$zero, 2228($a0)
-		sw		$zero, 2232($a0)
-		sw		$zero, 2236($a0)
-		sw		$zero, 2240($a0)
-		sw		$zero, 2244($a0)
-		sw		$zero, 2248($a0)
-		sw		$zero, 2252($a0)
-		sw		$zero, 2256($a0)
-		sw		$zero, 2260($a0)
-		sw		$zero, 2264($a0)
-		sw		$zero, 2268($a0)
-		sw		$zero, 2272($a0)
-		sw		$zero, 2276($a0)
-		sw		$zero, 2280($a0)
-		sw		$zero, 2284($a0)
-		sw		$zero, 2288($a0)
-		sw		$zero, 2292($a0)
-		sw		$zero, 2296($a0)
-		swc1	$f7, 2300($a0)
+#		sw		$zero, 2208($a0)		#flytta ut sista loopen
+#		sw		$zero, 2212($a0)
+#		sw		$zero, 2216($a0)
+#		sw		$zero, 2220($a0)
+#		sw		$zero, 2224($a0)
+#		sw		$zero, 2228($a0)
+#		sw		$zero, 2232($a0)
+#		sw		$zero, 2236($a0)
+#		sw		$zero, 2240($a0)
+#		sw		$zero, 2244($a0)
+#		sw		$zero, 2248($a0)
+#		sw		$zero, 2252($a0)
+#		sw		$zero, 2256($a0)
+#		sw		$zero, 2260($a0)
+#		sw		$zero, 2264($a0)
+#		sw		$zero, 2268($a0)
+#		sw		$zero, 2272($a0)
+#		sw		$zero, 2276($a0)
+#		sw		$zero, 2280($a0)
+#		sw		$zero, 2284($a0)
+#		sw		$zero, 2288($a0)
+#		sw		$zero, 2292($a0)
+#		sw		$zero, 2296($a0)
+#		swc1	$f7, 2300($a0)
 end_program:
 		li   	$v0, 10          	# specify exit system call
       	syscall						# exit program
-
+### STOP
 
 
 
