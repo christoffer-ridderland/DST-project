@@ -20,11 +20,11 @@
 # f7 = 1.s
 # f8 = A[k][k]
 # f9 = 1/ A[k][k]
-
+### START
 eliminate:
 		la		$a0, matrix_24x24	# a0 = A (base address of matrix)
 		li		$a1, 24				# a1 = N (Number of elems)
-		li 		$a2, 23
+		#li 		$a2, 23
 		li		$s3, 1
 		li 		$t6, 92
 		li 		$t5, 2304
@@ -90,37 +90,37 @@ for_i_end:
 
 for_k_end:
 		addi	$s2, $s2, 1			# k++
-		bne		$s2, $a2, for_k		# if k < n then target
+		bne		$s2, $a1, for_k		# if k < n then target
 		addi	$t8, $t8, 96		# k96 += 96
 last_row:
-		sw		$zero, 2208($a0)		#flytta ut sista loopen
-		sw		$zero, 2212($a0)
-		sw		$zero, 2216($a0)
-		sw		$zero, 2220($a0)
-		sw		$zero, 2224($a0)
-		sw		$zero, 2228($a0)
-		sw		$zero, 2232($a0)
-		sw		$zero, 2236($a0)
-		sw		$zero, 2240($a0)
-		sw		$zero, 2244($a0)
-		sw		$zero, 2248($a0)
-		sw		$zero, 2252($a0)
-		sw		$zero, 2256($a0)
-		sw		$zero, 2260($a0)
-		sw		$zero, 2264($a0)
-		sw		$zero, 2268($a0)
-		sw		$zero, 2272($a0)
-		sw		$zero, 2276($a0)
-		sw		$zero, 2280($a0)
-		sw		$zero, 2284($a0)
-		sw		$zero, 2288($a0)
-		sw		$zero, 2292($a0)
-		sw		$zero, 2296($a0)
-		swc1	$f7, 2300($a0)
+#		sw		$zero, 2208($a0)		#flytta ut sista loopen
+#		sw		$zero, 2212($a0)
+#		sw		$zero, 2216($a0)
+#		sw		$zero, 2220($a0)
+#		sw		$zero, 2224($a0)
+#		sw		$zero, 2228($a0)
+#		sw		$zero, 2232($a0)
+#		sw		$zero, 2236($a0)
+#		sw		$zero, 2240($a0)
+#		sw		$zero, 2244($a0)
+#		sw		$zero, 2248($a0)
+#		sw		$zero, 2252($a0)
+#		sw		$zero, 2256($a0)
+#		sw		$zero, 2260($a0)
+#		sw		$zero, 2264($a0)
+#		sw		$zero, 2268($a0)
+#		sw		$zero, 2272($a0)
+#		sw		$zero, 2276($a0)
+#		sw		$zero, 2280($a0)
+#		sw		$zero, 2284($a0)
+#		sw		$zero, 2288($a0)
+#		sw		$zero, 2292($a0)
+#		sw		$zero, 2296($a0)
+#		swc1	$f7, 2300($a0)
 end_program:
 		li   	$v0, 10          	# specify exit system call
       	syscall						# exit program
-
+### STOP
 
 
 
